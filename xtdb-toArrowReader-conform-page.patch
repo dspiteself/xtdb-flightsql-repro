@@ -1,0 +1,15 @@
+--- a/core/src/main/kotlin/xtdb/api/Xtdb.kt
++++ b/core/src/main/kotlin/xtdb/api/Xtdb.kt
+@@ -1121,7 +1121,11 @@
+ 
+                 override fun loadNextBatch(): Boolean =
+                     tryAdvance { inRel ->
+-                        inRel.openDirectSlice(this.allocator).use { rel ->
++                        // A page's vectors only carry the struct fields and union legs its own rows use,
++                        // whereas the root has the cursor's declared result schema; VectorLoader needs the
++                        // two to match buffer for buffer, so copy the page into the declared shape first.
++                        Relation(this.allocator, schema).use { rel ->
++                            inRel.rowCopier(rel).copyRange(0, inRel.rowCount)
+                             val loader = VectorLoader(this.vectorSchemaRoot)
+                             rel.openArrowRecordBatch().use { rb ->
+                                 loader.load(rb)
