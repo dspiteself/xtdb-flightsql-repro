@@ -4,7 +4,7 @@ Standalone reproductions of three XTDB FlightSQL/ADBC Arrow-stream bugs.
 They were found on XTDB `2.2.0-beta3` (Arrow Java 19.0.0), and the code involved is unchanged on `main` as of 2026-10-18.
 
 Bugs 1 and 2 share one root cause, in `Xtdb.Connection`'s `ResultCursor.toArrowReader()`.
-Bug 3 is separate.
+Bug 3 is separate (fix: https://github.com/xtdb/xtdb/pull/6233).
 
 Upstream PR with the fix for bugs 1 and 2: https://github.com/xtdb/xtdb/pull/6222
 
@@ -246,10 +246,12 @@ So concurrent Arrow-streaming queries in one JVM overwrite each other's buffer l
 
 Arrow Java 19.0.0 is the newest release and has no fix for this.
 
-### Fix (not in the PR)
+### Fix
 
-Either in XTDB - never hand the shared empty buffer to code that sets its indices (emit a fresh zero-length buffer per unload, or skip `writerIndex` on empty buffers in `loadBuffer`) - or in Arrow, by making the empty buffer's index setters no-ops.
+https://github.com/xtdb/xtdb/pull/6233: every zero-length buffer XTDB holds or hands out is its own no-op `ArrowBuf`, never shared between two owners, and an empty `ListVector` unloads its offsets with room for the leading zero (Arrow Java's `ListVector` sets an empty list's offset writer index to 4 without allocating).
+With it, `streamrace3.clj 15 8 false no-vsr` gives 0 bad reads (nightly: about 13k-29k).
 
 ## Upstream
 
-- Fix for bugs 1 and 2: https://github.com/xtdb/xtdb/pull/6222 (bug 3 is described there but not fixed)
+- Fix for bugs 1 and 2: https://github.com/xtdb/xtdb/pull/6222
+- Fix for bug 3: https://github.com/xtdb/xtdb/pull/6233
