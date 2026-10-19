@@ -6,7 +6,7 @@ They were found on XTDB `2.2.0-beta3` (Arrow Java 19.0.0), and the code involved
 Bugs 1 and 2 share one root cause, in `Xtdb.Connection`'s `ResultCursor.toArrowReader()`.
 Bug 3 is separate.
 
-Upstream PR with the fix for bugs 1 and 2: see the link at the bottom of this file.
+Upstream PR with the fix for bugs 1 and 2: https://github.com/xtdb/xtdb/pull/6222
 
 ## Running
 
@@ -252,4 +252,4 @@ Either in XTDB - never hand the shared empty buffer to code that sets its indice
 
 ## Upstream
 
-- Fix for bugs 1 and 2: https://github.com/xtdb/xtdb/pulls?q=author%3Adspiteself
+- Fix for bugs 1 and 2: https://github.com/xtdb/xtdb/pull/6222 (bug 3 is described there but not fixed)
